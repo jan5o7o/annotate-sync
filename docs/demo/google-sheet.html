@@ -15,28 +15,28 @@
   body {
     font-family: var(--font); background: var(--bg); color: var(--ink);
     line-height: 1.6; -webkit-font-smoothing: antialiased;
-    max-width: 720px; margin: 0 auto; padding: 60px 28px 120px;
+    max-width: 760px; margin: 0 auto; padding: 48px 32px 160px;
   }
   a { color: #7c3aed; }
-  .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 28px; }
+  .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 24px; }
   .back:hover { color: var(--ink); }
-  h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
-  .sub { font-size: 16px; color: var(--muted); margin: 0 0 32px; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .sub { font-size: 16px; color: var(--muted); margin: 0 0 36px; line-height: 1.6; }
   .notice {
     background: #fff; border: 1px solid var(--line); border-radius: 8px;
-    padding: 20px 24px; margin-bottom: 32px; font-size: 14px; line-height: 1.7;
+    padding: 22px 26px; margin-bottom: 20px; font-size: 14px; line-height: 1.7;
   }
   .notice strong { color: var(--ink); }
   .notice code {
     font-family: var(--mono); font-size: 12px; background: #f2efe8;
-    padding: 1px 5px; border-radius: 4px; word-break: break-all;
+    padding: 2px 6px; border-radius: 4px; word-break: break-all;
   }
   .demo-area {
     background: #fff; border: 1px solid var(--line); border-radius: 8px;
-    padding: 36px 32px;
+    padding: 40px 36px;
   }
-  .demo-area h2 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
-  .demo-area p { font-size: 14.5px; color: var(--muted); margin-bottom: 16px; }
+  .demo-area h2 { font-size: 20px; font-weight: 700; margin: 0 0 10px; }
+  .demo-area p { font-size: 14.5px; color: var(--muted); margin-bottom: 18px; }
   .demo-area kbd {
     font-family: var(--mono); font-size: 11px; background: #fff;
     border: 1px solid #d5cec2; border-bottom-width: 2px; border-radius: 5px;
@@ -48,10 +48,25 @@
   }
   .demo-area .card {
     background: #faf8f5; border: 1px solid var(--line); border-radius: 8px;
-    padding: 20px; margin-top: 20px;
+    padding: 22px 24px; margin-top: 20px;
   }
   .demo-area .card h3 { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
   .demo-area .card p { font-size: 13.5px; margin: 0; }
+
+  /* annotate.js UI — spacing fixes for toolbar & panel */
+  #__an_bar.an-right { right: 28px !important; bottom: 28px !important; }
+  #__an_bar.an-left  { left: 28px !important;  bottom: 28px !important; }
+  #__an_launch { bottom: 32px !important; right: 28px !important; }
+  /* panel internals — restore padding */
+  #__an_panel .an-ph       { padding: 16px 18px 12px !important; }
+  #__an_panel .an-toolsrow { padding: 0 18px 12px !important; }
+  #__an_panel .an-list     { padding: 8px 18px !important; }
+  /* footer button row spacing */
+  #__an_foot .an-footrow   { gap: 10px !important; }
+  #__an_foot .an-fbtn      { padding: 10px 12px !important; }
+  @media (min-width: 641px) {
+    #__an_root.an-popen #__an_bar.an-right { right: 408px !important; }
+  }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
