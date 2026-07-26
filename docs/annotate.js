@@ -319,7 +319,7 @@
   #__an_root, #__an_root *, #__an_compose, #__an_compose *,
   #__an_toasts, #__an_toasts *, #__an_namewrap, #__an_namewrap *,
   #__an_sheetwrap, #__an_sheetwrap *, #__an_honowrap, #__an_honowrap *,
-  #__an_sharewrap, #__an_sharewrap *,
+  #__an_sharewrap, #__an_sharewrap * { box-sizing: border-box; }
 
   .an-mark { border-radius: 2px; padding: .04em 0; cursor: pointer;
     transition: background .15s, box-shadow .15s; }
