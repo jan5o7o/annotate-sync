@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>annotate-sync — remote sync backends for annotate.js</title>
+<meta name="description" content="Pluggable remote-sync backends for annotate.js: Google Sheets and Hono. Push annotations to a shared sheet or your own API." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #faf8f5;
+    --bg-2: #f2efe8;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6560;
+    --muted-2: #8c8680;
+    --line: #e8e3da;
+    --yellow: #f5c842;
+    --yellow-d: #e0b32e;
+    --green: #22c55e;
+    --green-bg: #eafbf0;
+    --violet: #7c3aed;
+    --violet-bg: #f5f0ff;
+    --amber: #f59e0b;
+    --amber-bg: #fff8eb;
+    --radius: 10px;
+    --maxw: 960px;
+    --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--yellow); color: var(--ink); }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; width: 100%; }
+
+  /* nav */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250,248,245,.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-in {
+    height: 68px; display: flex; align-items: center; justify-content: space-between;
+    max-width: var(--maxw); margin: 0 auto; padding: 0 28px;
+  }
+  .logo { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .logo .mark {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--ink); color: var(--yellow);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800;
+  }
+  .logo .sub { font-size: 12px; font-weight: 500; color: var(--muted-2); margin-left: 2px; }
+  .nav-links { display: flex; align-items: center; gap: 24px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .nav-links a:hover { color: var(--ink); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 14px; border-radius: 8px;
+    padding: 11px 20px; cursor: pointer;
+    border: 1px solid transparent;
+    transition: background .18s, border-color .18s, transform .12s;
+    white-space: nowrap; font-family: inherit;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--yellow); color: var(--ink); }
+  .btn-primary:hover { background: var(--yellow-d); }
+  .btn-ghost { background: var(--card); color: var(--ink); border-color: #d5cec2; }
+  .btn-ghost:hover { background: var(--bg-2); }
+
+  /* hero */
+  .hero { padding: 80px 0 60px; text-align: center; }
+  .hero .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--violet);
+  }
+  .hero h1 { font-size: 48px; line-height: 1.08; font-weight: 800; margin: 18px 0 0; letter-spacing: -0.02em; }
+  .hero h1 mark { background: linear-gradient(transparent 58%, rgba(245,200,66,.55) 58%); color: inherit; padding: 0 3px; }
+  .hero .sub { font-size: 18px; line-height: 1.6; color: var(--muted); margin: 16px auto 0; max-width: 560px; }
+  .hero .sub code { font-family: var(--mono); font-size: 14px; color: var(--ink); background: var(--bg-2); padding: 2px 6px; border-radius: 4px; }
+
+  /* cards section */
+  .sec { max-width: var(--maxw); margin: 0 auto; padding: 0 28px 80px; }
+  .sync-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .sync-card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 32px;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+    position: relative; overflow: hidden;
+  }
+  .sync-card:hover { border-color: #c4b8e8; box-shadow: 0 14px 32px -18px rgba(0,0,0,.18); transform: translateY(-2px); }
+  .sync-card .icon {
+    width: 52px; height: 52px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 20px;
+  }
+  .sync-card.google .icon { background: var(--green-bg); }
+  .sync-card.hono .icon { background: var(--amber-bg); }
+  .sync-card .badge {
+    position: absolute; top: 28px; right: 28px;
+    font-size: 11px; font-weight: 700; padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .sync-card .badge.live { background: var(--green-bg); color: #15803d; }
+  .sync-card .badge.soon { background: var(--amber-bg); color: #92400e; }
+  .sync-card h3 { font-size: 22px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sync-card p { font-size: 14.5px; line-height: 1.6; color: var(--muted); margin: 0 0 20px; }
+  .sync-card .meta {
+    display: flex; align-items: center; gap: 12px; margin-top: 16px;
+    font-family: var(--mono); font-size: 12px; color: var(--muted-2);
+    background: var(--bg-2); border-radius: 6px; padding: 10px 14px;
+    word-break: break-all;
+  }
+  .sync-card .meta .label { font-weight: 700; color: var(--muted); flex: none; }
+  .sync-card .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .sync-card.placeholder { opacity: .55; pointer-events: none; }
+  .sync-card.placeholder:hover { transform: none; box-shadow: none; border-color: var(--line); }
+
+  /* how it works */
+  .how { border-top: 1px solid var(--line); background: var(--bg-2); }
+  .how-in { max-width: var(--maxw); margin: 0 auto; padding: 72px 28px; }
+  .how-in h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .how-in .lead { font-size: 16px; color: var(--muted-2); max-width: 560px; margin: 0 0 36px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .step {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 24px;
+  }
+  .step .n {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--ink); color: var(--yellow);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; margin-bottom: 14px;
+  }
+  .step h4 { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+  .step p { font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+  .step code { font-family: var(--mono); font-size: 12px; background: var(--bg-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* footer */
+  footer { border-top: 1px solid var(--line); background: var(--bg-2); }
+  .foot { max-width: var(--maxw); margin: 0 auto; padding: 40px 28px; text-align: center; font-size: 13px; color: var(--muted-2); }
+  .foot a { color: var(--violet); }
+  .foot a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .sync-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 34px; }
+    .hero .sub { font-size: 16px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="logo" href="#">
+      <span class="mark">&#8599;&#8600;</span>
+      <span>annotate-sync<span class="sub">.js</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#sync">Sync backends</a>
+      <a href="#how">How it works</a>
+    </div>
+    <a class="btn btn-ghost" href="https://github.com/reviewjs/annotate" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.4 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10.1 10.1 0 0 0 22 12.3C22 6.6 17.5 2 12 2z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">annotate.js plugins</div>
+    <h1>Remote sync <mark>without a backend</mark></h1>
+    <p class="sub">Pluggable sync adapters for <code>annotate.js</code>. Push annotations to Google Sheets or your own Hono API &mdash; no server required.</p>
+  </div>
+</header>
+
+<section class="sec" id="sync">
+  <div class="sync-grid">
+
+    <!-- Google Sheets -->
+    <div class="sync-card google">
+      <span class="badge live">Live</span>
+      <div class="icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </div>
+      <h3>Google Sheets Sync</h3>
+      <p>Sync annotations to a shared Google Sheet in real time. Perfect for teams already using Sheets for QA, feedback, or project tracking.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="demo/google-sheet.html">
+          Open demo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="google-sheet.gs" target="_blank">Apps Script source</a>
+      </div>
+      <div class="meta">
+        <span class="label">Endpoint</span>
+        <span>script.google.com/macros/s/AKfycbw38Lcoaj7AjR8IOeMIP-ypQ9WtsIXl0YBnXDwSbKN37Bl1vWvTMYX7AoCMV3lGvxxS/exec</span>
+      </div>
+    </div>
+
+    <!-- Hono -->
+    <div class="sync-card hono placeholder">
+      <span class="badge soon">Soon</span>
+      <div class="icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+      </div>
+      <h3>Hono Backend Sync</h3>
+      <p>Push annotations to your own Hono API. Full control over storage, auth, and data flow. Bring your own database.</p>
+      <div class="actions">
+        <span class="btn btn-ghost" style="opacity:.5;cursor:default;">Coming soon</span>
+      </div>
+      <div class="meta">
+        <span class="label">Endpoint</span>
+        <span>&mdash; to be configured</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="how-in">
+    <h2>How it works</h2>
+    <p class="lead">Three script tags and a URL. That's all it takes to add remote sync to annotate.js.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h4>Load annotate.js</h4>
+        <p>Drop the main <code>annotate.js</code> script into your page as usual.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h4>Add sync plugins</h4>
+        <p>Include <code>sync-engine.js</code> and your chosen backend (<code>sync-google-sheet.js</code> or <code>sync-hono.js</code>).</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h4>Configure the URL</h4>
+        <p>Set <code>data-google-sheet</code> or <code>data-hono-url</code> on the script tag &mdash; or paste it when prompted in-app.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot">
+    <p>annotate-sync is part of the <a href="https://github.com/reviewjs/annotate" target="_blank" rel="noopener">annotate.js</a> project &middot; MIT Licensed</p>
+  </div>
+</footer>
+
+</body>
+</html>

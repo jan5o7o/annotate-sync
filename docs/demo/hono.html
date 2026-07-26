@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hono Sync — annotate-sync demo</title>
+<style>
+  :root {
+    --bg: #faf8f5; --ink: #1a1a1a; --muted: #6b6560;
+    --line: #e8e3da; --amber: #f59e0b; --amber-bg: #fff8eb;
+    --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font); background: var(--bg); color: var(--ink);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 28px;
+  }
+  a { color: #7c3aed; }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    padding: 48px; max-width: 480px; width: 100%; text-align: center;
+  }
+  .icon {
+    width: 64px; height: 64px; border-radius: 12px;
+    background: var(--amber-bg); color: var(--amber);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 28px; margin-bottom: 20px;
+  }
+  h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 8px; }
+  p { font-size: 14.5px; color: var(--muted); margin: 0 0 24px; line-height: 1.65; }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+    font-weight: 600; color: var(--muted); margin-top: 16px;
+  }
+  .back:hover { color: var(--ink); }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<div class="card">
+  <div class="icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  </div>
+  <h1>Hono Sync &mdash; Coming Soon</h1>
+  <p>The Hono backend sync adapter pushes annotations to your own Hono API. Full control over storage, auth, and data flow. We'll wire up a live demo here soon.</p>
+  <a class="back" href="../">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to annotate-sync
+  </a>
+</div>
+
+</body>
+</html>
