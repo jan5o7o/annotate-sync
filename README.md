@@ -1,4 +1,4 @@
-# annotate-plus
+# Annotate Sync
 
 > **Fork of [reviewjs](https://github.com/reviewjs/annotate)** with enhancements for production use.
 
