@@ -97,31 +97,21 @@
 
   window.Annotate.sync = engine;
 
-  // Trigger initial pull after all deferred scripts have loaded
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      if (engine.anyEnabled()) engine.flush();
-      engine.pull(function (incoming, err) {
-        if (incoming && incoming.length) {
-          var added = engine.mergeAll(incoming);
-          if (added > 0) {
-            var I = window.Annotate._internals;
-            I.renderAll();
-            I.renderPanel();
-          }
-        }
-      });
-    });
-  } else {
+  // Trigger initial pull after all deferred scripts (plugins) have loaded.
+  // Defer scripts execute during 'interactive' state in document order, so
+  // we must wait for DOMContentLoaded which fires after the last defer script.
+  document.addEventListener('DOMContentLoaded', function () {
     if (engine.anyEnabled()) engine.flush();
     engine.pull(function (incoming, err) {
       if (incoming && incoming.length) {
         var added = engine.mergeAll(incoming);
         if (added > 0) {
-          var I = window.Annotate._internals;
+          I.state.comments = I.pageComments().filter(function (c) { return !I.pendingDeletes[c.id]; });
           I.renderAll();
           I.renderPanel();
         }
       }
     });
-  }
+  });
+})();
+
