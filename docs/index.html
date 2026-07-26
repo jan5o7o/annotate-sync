@@ -92,6 +92,19 @@
   .hero .sub { font-size: 18px; line-height: 1.6; color: var(--muted); margin: 16px auto 0; max-width: 560px; }
   .hero .sub code { font-family: var(--mono); font-size: 14px; color: var(--ink); background: var(--bg-2); padding: 2px 6px; border-radius: 4px; }
 
+  /* fork banner */
+  .fork-banner {
+    background: #fff8eb; border-top: 1px solid #fde68a; border-bottom: 1px solid #fde68a;
+    padding: 14px 0;
+  }
+  .fork-banner .wrap {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: #92400e; line-height: 1.55;
+  }
+  .fork-banner svg { flex: none; margin-top: 1px; color: #f59e0b; }
+  .fork-banner a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .fork-banner a:hover { color: #78350f; }
+
   /* cards section */
   .sec { max-width: var(--maxw); margin: 0 auto; padding: 0 28px 80px; }
   .sync-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
@@ -192,6 +205,13 @@
     <p class="sub">Pluggable sync adapters for <code>annotate.js</code>. Push annotations to Google Sheets or your own Hono API &mdash; no server required.</p>
   </div>
 </header>
+
+<div class="fork-banner">
+  <div class="wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+    <span><strong>Community fork</strong> &mdash; not an official feature of <a href="https://github.com/reviewjs/annotate" target="_blank" rel="noopener">reviewjs/annotate</a>. This is an independent project adding remote sync backends.</span>
+  </div>
+</div>
 
 <section class="sec" id="sync">
   <div class="sync-grid">
