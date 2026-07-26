@@ -96,4 +96,32 @@
   };
 
   window.Annotate.sync = engine;
-})();
+
+  // Trigger initial pull after all deferred scripts have loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      if (engine.anyEnabled()) engine.flush();
+      engine.pull(function (incoming, err) {
+        if (incoming && incoming.length) {
+          var added = engine.mergeAll(incoming);
+          if (added > 0) {
+            var I = window.Annotate._internals;
+            I.renderAll();
+            I.renderPanel();
+          }
+        }
+      });
+    });
+  } else {
+    if (engine.anyEnabled()) engine.flush();
+    engine.pull(function (incoming, err) {
+      if (incoming && incoming.length) {
+        var added = engine.mergeAll(incoming);
+        if (added > 0) {
+          var I = window.Annotate._internals;
+          I.renderAll();
+          I.renderPanel();
+        }
+      }
+    });
+  }
