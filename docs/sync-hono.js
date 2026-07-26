@@ -56,14 +56,8 @@
       if (!this.enabled()) return;
       var row = I.el("div", { class: "an-localnote" }, [
         I.el("span", { html: I.ICONS.download }),
-        I.el("span", { text: HONO_SYNCING ? "Syncing\u2026" : "Synced to Hono \u00B7 " }),
+        I.el("span", { text: HONO_SYNCING ? "Syncing\u2026" : "Synced to Hono" }),
       ]);
-      if (!HONO_SYNCING) {
-        var changeBtn = I.el("button", { class: "an-mini an-ghost2", text: "Change", title: "Change Hono URL", onclick: function () {
-          I.askHono(function () { I.renderFooter(); });
-        } });
-        row.appendChild(changeBtn);
-      }
       el.appendChild(row);
     },
   });

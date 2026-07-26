@@ -40,7 +40,7 @@ reply, and delete all sync within a few seconds. Comments from other reviewers
 on the same sheet appear when you load the page.
 
 A **Sync now** button in the comments panel footer lets you force a pull at any
-time. Click **Change** in the footer to switch sheets.
+time.
 
 > **No Google account required for reviewers.** The Apps Script runs as the
 > sheet owner. Reviewers only need the web app URL.
@@ -55,8 +55,7 @@ Sync comments to a self-hosted Hono API that stores them as JSON files.
 cd hono-server && npm install && npm start    # runs on :3099
 ```
 
-Add `data-hono-url="http://localhost:3099/api/sync"` to the script tag, or
-click **Connect hono** in the footer.
+Add `data-hono-url="http://localhost:3099/api/sync"` to the script tag.
 
 ### Plugin-based sync architecture
 

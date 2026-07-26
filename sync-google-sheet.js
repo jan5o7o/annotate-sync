@@ -113,14 +113,8 @@
       if (!this.enabled()) return;
       var row = I.el("div", { class: "an-localnote" }, [
         I.el("span", { html: I.ICONS.sheets }),
-        I.el("span", { text: GS_SYNCING ? "Syncing\u2026" : "Synced to Google Sheets \u00B7 " }),
+        I.el("span", { text: GS_SYNCING ? "Syncing\u2026" : "Synced to Google Sheets" }),
       ]);
-      if (!GS_SYNCING) {
-        var changeBtn = I.el("button", { class: "an-mini an-ghost2", text: "Change", title: "Change Google Sheet", onclick: function () {
-          I.askSheet(function () { I.renderFooter(); });
-        } });
-        row.appendChild(changeBtn);
-      }
       el.appendChild(row);
     },
   });
