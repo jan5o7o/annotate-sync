@@ -63,7 +63,7 @@ Sync backends are loaded as separate script files, so you only ship what you
 need:
 
 ```html
-<script src="./annotate.js" defer></script>
+<script src="./annotate-sync.js" defer></script>
 <script src="./sync-engine.js" defer></script>         <!-- required for any sync -->
 <script src="./sync-google-sheet.js" defer></script>    <!-- Google Sheets plugin -->
 <script src="./sync-hono.js" defer></script>             <!-- Hono sync plugin -->
@@ -154,11 +154,10 @@ That's it — reload the page and the toolbar appears in the bottom-right corner
 > `https://unpkg.com/@reviewjs/annotate@1.0.1/annotate.js`
 
 ### 2. Self-hosted
-
-Download [`annotate.js`](./annotate.js), drop it next to your HTML and:
+Download [`annotate-sync.js`](./annotate-sync.js), drop it next to your HTML and:
 
 ```html
-<script src="/annotate.js" defer></script>
+<script src="/annotate-sync.js" defer></script>
 ```
 
 ---

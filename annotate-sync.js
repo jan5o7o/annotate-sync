@@ -1,32 +1,29 @@
 /* =============================================================================
- * annotate.js — a drop-in visual review & annotation layer for any website.
- * Open-source edition · local-only · zero backend.
+ * annotate-sync.js — community fork of annotate.js with remote sync backends.
+ *
+ * FORK OF: https://github.com/reviewjs/annotate (annotate.js)
+ * This is NOT an official reviewjs release. It adds a pluggable sync engine
+ * plus Google Sheets and Hono backends. See the README for details.
  *
  * Load with a single <script> tag:
- *   <script src="https://cdn.jsdelivr.net/npm/reviewjs/annotate.js" defer></script>
+ *   <script src="annotate-sync.js" data-google-sheet="<URL>" defer></script>
  *
  * Comments are stored in the visitor's own browser (localStorage) and can be
  * exported to / imported from a portable JSON file — no server, no database,
  * no tracking. Perfect for design reviews, client feedback, QA passes and docs.
  *
  * Configure via data-attributes on the script tag (all optional):
- *   data-project   namespace for stored comments (keep separate sites apart)
- *   data-page      page key (default: location.pathname)
- *   data-accent    brand color for primary buttons / active tool
- *   data-theme     "light" | "dark" | "auto"  (default auto — sniffs page bg)
- *   data-position  "bottom-right" | "bottom-left"  (toolbar corner)
- *   data-blocks    CSS selector for section-comment (+) targets
- *   data-start-open "true" to show the toolbar on initial load
- *   data-note      author's note to reviewers — what should be reviewed
- *   data-share-email  where reviewers send comments: an email address, or a
- *                     Slack / Hangout (chat) link
+ *   data-project      namespace for stored comments (keep separate sites apart)
+ *   data-page         page key (default: location.pathname)
+ *   data-accent       brand color for primary buttons / active tool
+ *   data-theme        "light" | "dark" | "auto"  (default auto — sniffs page bg)
+ *   data-position     "bottom-right" | "bottom-left"  (toolbar corner)
+ *   data-blocks       CSS selector for section-comment (+) targets
+ *   data-start-open   "true" to show the toolbar on initial load
+ *   data-note         author's note to reviewers — what should be reviewed
+ *   data-google-sheet Google Apps Script web app URL for sheet sync
+ *   data-hono-url     Hono API endpoint for backend sync
  * …or via `window.AnnotateConfig = { project, page, … }` before the script.
- *
- * Tools: text highlight, rectangle, circle, pin, freehand ink and section
- * notes — each carries a threaded comment.
- *
- * All UI lives under ids/classes prefixed `an-` / `__an`; styles are injected
- * and scoped so it never collides with host-page content.
  *
  * MIT Licensed.
  * ========================================================================== */
