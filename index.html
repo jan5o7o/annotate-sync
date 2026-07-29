@@ -164,6 +164,31 @@
   .step p { font-size: 13.5px; line-height: 1.6; color: var(--muted); }
   .step code { font-family: var(--mono); font-size: 12px; background: var(--bg-2); padding: 1px 5px; border-radius: 4px; }
 
+  /* code demo */
+  .code-demo { margin-top: 44px; }
+  .code-demo .tabs { display: flex; gap: 0; margin-bottom: 0; }
+  .code-demo .tab {
+    font-size: 13px; font-weight: 600; padding: 9px 18px;
+    border: 1px solid var(--line); border-bottom: none;
+    border-radius: 8px 8px 0 0; cursor: pointer;
+    background: var(--bg-2); color: var(--muted-2);
+    transition: background .15s, color .15s;
+  }
+  .code-demo .tab.active { background: var(--card); color: var(--ink); }
+  .code-window {
+    background: #0c0e12; border: 1px solid #2a2d33; border-radius: 0 8px 8px 8px;
+    padding: 20px 24px; font-family: var(--mono); font-size: 13px;
+    line-height: 1.8; color: #e6e6ea; overflow-x: auto;
+    min-height: 84px; position: relative;
+  }
+  .code-window .line { white-space: pre; }
+  .code-window .line .tag    { color: #f5c842; }
+  .code-window .line .attr   { color: #93c5fd; }
+  .code-window .line .val    { color: #a5d6a7; }
+  .code-window .line .cmt    { color: #6b7280; font-style: italic; }
+  .code-window .cursor { display: inline-block; width: 8px; height: 15px; background: #e6e6ea; vertical-align: middle; margin-left: 1px; animation: blink .8s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
   /* footer */
   footer { border-top: 1px solid var(--line); background: var(--bg-2); }
   .foot { max-width: var(--maxw); margin: 0 auto; padding: 40px 28px; text-align: center; font-size: 13px; color: var(--muted-2); }
@@ -257,6 +282,7 @@
       </div>
     </div>
 
+
   </div>
 </section>
 
@@ -281,6 +307,14 @@
         <p>Set <code>data-google-sheet</code> or <code>data-hono-url</code> on the script tag.</p>
       </div>
     </div>
+
+    <div class="code-demo">
+      <div class="tabs">
+        <span class="tab active" onclick="switchTab('gsheet')">Google Sheets</span>
+        <span class="tab" onclick="switchTab('hono')">Hono</span>
+      </div>
+      <div class="code-window" id="codeWin"></div>
+    </div>
   </div>
 </section>
 
@@ -290,5 +324,44 @@
   </div>
 </footer>
 
+
+<script>
+var lines = {
+  gsheet: [
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./annotate-sync.js"</span>',
+    '  <span class="attr">data-google-sheet</span>=<span class="val">"&lt;URL&gt;"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>',
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./sync-engine.js"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>  <span class="cmt">&lt;!-- required --&gt;</span>',
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./sync-google-sheet.js"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>',
+  ],
+  hono: [
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./annotate-sync.js"</span>',
+    '  <span class="attr">data-hono-url</span>=<span class="val">"https://your-server.com/api/sync"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>',
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./sync-engine.js"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>  <span class="cmt">&lt;!-- required --&gt;</span>',
+    '<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"./sync-hono.js"</span> <span class="attr">defer</span><span class="tag">&gt;&lt;/script&gt;</span>',
+  ],
+};
+var current = 'gsheet', charIdx = 0, lineIdx = 0, timer;
+function switchTab(t) { current = t; resetType(); document.querySelectorAll('.tab').forEach(function(el,i){ el.classList.toggle('active', i===(t==='gsheet'?0:1)); }); }
+function resetType() { clearTimeout(timer); lineIdx=0; charIdx=0; document.getElementById('codeWin').innerHTML=''; typeNext(); }
+function typeNext() {
+  var win = document.getElementById('codeWin');
+  var list = lines[current];
+  if (lineIdx >= list.length) { lineIdx=0; charIdx=0; win.innerHTML=''; timer=setTimeout(typeNext,1200); return; }
+  var target = list[lineIdx];
+  if (charIdx === 0) { var div=document.createElement('div'); div.className='line'; win.appendChild(div); }
+  if (charIdx < target.length) {
+    var last = win.lastChild;
+    last.innerHTML = target.substring(0, charIdx+1) + '<span class="cursor"></span>';
+    charIdx++;
+    timer = setTimeout(typeNext, charIdx===target.length? 400 : 30+Math.random()*40);
+  } else {
+    var last = win.lastChild;
+    last.innerHTML = target;
+    charIdx = 0; lineIdx++;
+    timer = setTimeout(typeNext, 120);
+  }
+}
+typeNext();
+</script>
 </body>
 </html>
