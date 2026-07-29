@@ -346,19 +346,19 @@ function resetType() { clearTimeout(timer); lineIdx=0; charIdx=0; document.getEl
 function typeNext() {
   var win = document.getElementById('codeWin');
   var list = lines[current];
-  if (lineIdx >= list.length) { lineIdx=0; charIdx=0; win.innerHTML=''; timer=setTimeout(typeNext,1200); return; }
+  if (lineIdx >= list.length) { lineIdx=0; charIdx=0; win.innerHTML=''; timer=setTimeout(typeNext,600); return; }
   var target = list[lineIdx];
   if (charIdx === 0) { var div=document.createElement('div'); div.className='line'; win.appendChild(div); }
   if (charIdx < target.length) {
     var last = win.lastChild;
     last.innerHTML = target.substring(0, charIdx+1) + '<span class="cursor"></span>';
     charIdx++;
-    timer = setTimeout(typeNext, charIdx===target.length? 400 : 30+Math.random()*40);
+    timer = setTimeout(typeNext, charIdx===target.length? 200 : 8+Math.random()*16);
   } else {
     var last = win.lastChild;
     last.innerHTML = target;
     charIdx = 0; lineIdx++;
-    timer = setTimeout(typeNext, 120);
+    timer = setTimeout(typeNext, 60);
   }
 }
 typeNext();
