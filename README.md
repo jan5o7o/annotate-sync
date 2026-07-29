@@ -1,4 +1,4 @@
-# Annotate Sync
+# Annotate + ~~Zinc~~ Sync
 
 > **Fork of [reviewjs](https://github.com/reviewjs/annotate)** with enhancements for production use.
 
