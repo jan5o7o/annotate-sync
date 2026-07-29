@@ -346,7 +346,7 @@ function resetType() { clearTimeout(timer); lineIdx=0; charIdx=0; document.getEl
 function typeNext() {
   var win = document.getElementById('codeWin');
   var list = lines[current];
-  if (lineIdx >= list.length) { lineIdx=0; charIdx=0; win.innerHTML=''; timer=setTimeout(typeNext,600); return; }
+  if (lineIdx >= list.length) return;
   var target = list[lineIdx];
   if (charIdx === 0) { var div=document.createElement('div'); div.className='line'; win.appendChild(div); }
   if (charIdx < target.length) {
