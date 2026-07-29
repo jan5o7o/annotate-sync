@@ -2,6 +2,9 @@
 
 > **Fork of [reviewjs](https://github.com/reviewjs/annotate)** with enhancements for production use.
 
+**`annotate.js`** tracks upstream exactly — it is never modified.
+All fork changes live in **`annotate-sync.js`**, which is the file you should use.
+
 ## What's new in this fork
 
 ### Google Sheets sync
