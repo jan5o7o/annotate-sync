@@ -23,17 +23,20 @@ you need.
 
 ### Google Sheets sync
 
-Optionally sync comments to a Google Sheet in real time. The sheet doubles as a
+Sync comments to a shared Google Sheet in real time. The sheet doubles as a
 live review dashboard — every annotation appears as a row.
+
+```html
+<script src="./annotate-sync.js" data-google-sheet="<YOUR_APPS_SCRIPT_URL>" defer></script>
+<script src="./sync-engine.js" defer></script>
+<script src="./sync-google-sheet.js" defer></script>
+```
 
 #### Setup
 
 1. **Create a Google Sheet** with this header row:
 
    `annotateId | page | url | type | author | text | color | anchor | geom | resolved | parentId | createdAt | updatedAt`
-
-   The Sheet doesn't need to be shared with reviewers — the Apps Script runs as
-   you and writes to it directly.
 
 2. **Extensions → Apps Script**, paste the contents of
    [`google-sheet.gs`](./google-sheet.gs), and save.
@@ -43,23 +46,25 @@ live review dashboard — every annotation appears as a row.
    - Who has access: **Anyone**
    - Copy the web app URL (must end with `/exec`).
 
-4. **Set the URL** with `data-google-sheet="<URL>"` on the script tag — reviewers
-   never see a setup prompt.
-
 > **No Google account required for reviewers.** The Apps Script runs as the
-> sheet owner. Reviewers only need the web app URL.
+> sheet owner.
 
 ---
 
 ### Hono sync
 
 Sync comments to a self-hosted Hono API that stores them as JSON files.
+See [`hono-server/`](./hono-server) for the server code.
+
+```html
+<script src="./annotate-sync.js" data-hono-url="https://your-server.com/api/sync" defer></script>
+<script src="./sync-engine.js" defer></script>
+<script src="./sync-hono.js" defer></script>
+```
 
 ```bash
 cd hono-server && npm install && npm start    # runs on :3099
 ```
-
-Add `data-hono-url="http://localhost:3099/api/sync"` to the script tag.
 
 ### Other enhancements
 
