@@ -27,7 +27,8 @@ Sync comments to a shared Google Sheet in real time. The sheet doubles as a
 live review dashboard — every annotation appears as a row.
 
 ```html
-<script src="./annotate-sync.js" data-google-sheet="<YOUR_APPS_SCRIPT_URL>" defer></script>
+<script src="./annotate-sync.js"
+  data-google-sheet="<YOUR_APPS_SCRIPT_URL>" defer></script>
 <script src="./sync-engine.js" defer></script>
 <script src="./sync-google-sheet.js" defer></script>
 ```
@@ -57,7 +58,8 @@ Sync comments to a self-hosted Hono API that stores them as JSON files.
 See [`hono-server/`](./hono-server) for the server code.
 
 ```html
-<script src="./annotate-sync.js" data-hono-url="https://your-server.com/api/sync" defer></script>
+<script src="./annotate-sync.js"
+  data-hono-url="https://your-server.com/api/sync" defer></script>
 <script src="./sync-engine.js" defer></script>
 <script src="./sync-hono.js" defer></script>
 ```
