@@ -32,7 +32,7 @@
   if (window.__ANNOTATE_LOADED__) return;
   window.__ANNOTATE_LOADED__ = true;
 
-  var VERSION = "1.0.1";
+  var VERSION = "1.2.0";
 
   // --------------------------------------------------------------------------
   // CONFIG — resolved from (in priority order) the script tag's data-* attrs,
@@ -513,12 +513,14 @@
     font-size:11.5px; color: var(--an-muted); }
   #__an_foot .an-localnote svg { width:14px; height:14px; flex:none; }
   #__an_foot .an-footrow { display:flex; gap:8px; }
+  #__an_foot .an-footrow.an-four { flex-wrap:wrap; }
   #__an_foot .an-fbtn { flex:1; border:1px solid var(--an-border-strong);
     background: var(--an-surface); color: var(--an-fg); border-radius:10px; padding:9px;
     font:600 12.5px var(--an-font); cursor:pointer; display:flex; align-items:center;
     justify-content:center; gap:7px; transition: background .15s, border-color .15s; }
   #__an_foot .an-fbtn:hover { background: var(--an-surface-2); border-color: var(--an-btn-bg); }
   #__an_foot .an-fbtn svg { width:15px; height:15px; }
+  #__an_foot .an-footrow.an-four .an-fbtn { flex-basis:calc(50% - 4px); }
 
   /* ---- composer popover -------------------------------------------------- */
   #__an_compose { position:absolute; z-index:2147483300; width:304px;
@@ -787,6 +789,8 @@
     #__an_colorbtn { width:36px; height:36px; }
     #__an_panel .an-list { -webkit-overflow-scrolling: touch; }
     .an-ph { padding:14px 14px 10px; }
+    #__an_foot .an-footrow { flex-wrap:wrap; }
+    #__an_foot .an-fbtn { flex-basis:calc(50% - 4px); }
   }
 
   @media (hover: none) and (pointer: coarse) {
@@ -2084,13 +2088,10 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  function exportComments() {
+  function buildExportPayload() {
     var comments = state.comments.slice();
-    if (!comments.length) {
-      toast("No comments on this page to export", { kind: "info" });
-      return;
-    }
-    var payload = {
+    if (!comments.length) return null;
+    return {
       annotate: VERSION,
       kind: "annotate-export",
       exportedAt: new Date().toISOString(),
@@ -2100,10 +2101,28 @@
       exportedViewport: { vw: window.innerWidth, vh: window.innerHeight, dpr: window.devicePixelRatio || 1 },
       comments: comments,
     };
+  }
+
+  function exportComments() {
+    var payload = buildExportPayload();
+    if (!payload) {
+      toast("No comments on this page to export", { kind: "info" });
+      return;
+    }
+    var comments = payload.comments;
     var slug = (PAGE || "page").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "page";
     var stamp = new Date().toISOString().slice(0, 10);
     downloadJSON(payload, "annotate-" + slug + "-" + stamp + ".json");
     toast("Exported " + comments.length + " comment" + (comments.length === 1 ? "" : "s"), { kind: "success" });
+  }
+
+  function copyComments() {
+    var payload = buildExportPayload();
+    if (!payload) {
+      toast("No comments on this page to copy", { kind: "info" });
+      return;
+    }
+    copyText(JSON.stringify(payload, null, 2), "Comments copied as JSON");
   }
 
   function pickImportFile() {
@@ -2248,6 +2267,7 @@
     // Button row
     var btnRow = [];
     btnRow.push(el("button", { class: "an-fbtn" + (n ? " an-pulse" : ""), title: "Download comments as JSON", html: ICONS.download + "<span>Download</span>", onclick: exportComments }));
+    btnRow.push(el("button", { class: "an-fbtn", title: "Copy comments as JSON", "aria-label": "Copy comments as JSON", html: ICONS.copy + "<span>Copy</span>", onclick: copyComments }));
     if (anySync) {
       btnRow.push(el("button", { class: "an-fbtn", title: "Pull latest from all sync targets", html: ICONS.sheets + "<span>Sync now</span>", onclick: function () {
         Annotate.sync.flush();
@@ -2269,7 +2289,7 @@
     }
     if (canShare) btnRow.push(el("button", { class: "an-fbtn", title: "Send comments to " + state.share, html: ICONS.share + "<span>Share</span>", onclick: shareComments }));
     btnRow.push(el("button", { class: "an-fbtn", html: ICONS.upload + "<span>Import</span>", onclick: pickImportFile }));
-    footEl.appendChild(el("div", { class: "an-footrow" }, btnRow));
+    footEl.appendChild(el("div", { class: "an-footrow" + (anySync || canShare ? " an-four" : "") }, btnRow));
   }
 
   // Copy text to the clipboard with graceful fallback + toast feedback.
