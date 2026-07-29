@@ -5,14 +5,26 @@
 **`annotate.js`** tracks upstream exactly — it is never modified.
 All fork changes live in **`annotate-sync.js`**, which is the file you should use.
 
-## What's new in this fork
+## Usage
+
+Drop these script tags before `</body>`. Comments sync automatically — no
+build step, no bundler.
+
+```html
+<script src="./annotate-sync.js" defer></script>
+<script src="./sync-engine.js" defer></script>         <!-- required for any sync -->
+<script src="./sync-google-sheet.js" defer></script>    <!-- Google Sheets plugin -->
+```
+
+To use Hono instead, swap the last line for `sync-hono.js`. You only ship what
+you need.
+
+## Backends
 
 ### Google Sheets sync
 
 Optionally sync comments to a Google Sheet in real time. The sheet doubles as a
-live review dashboard — every annotation appears as a row, and any collaborator
-with access to the sheet can see, filter, and sort feedback without installing
-anything.
+live review dashboard — every annotation appears as a row.
 
 #### Setup
 
@@ -21,11 +33,7 @@ anything.
    `annotateId | page | url | type | author | text | color | anchor | geom | resolved | parentId | createdAt | updatedAt`
 
    The Sheet doesn't need to be shared with reviewers — the Apps Script runs as
-   you and writes to it directly. Just make sure the Sheet stays in your Google
-   Drive (the script needs access to it). If you want your team to view feedback
-   directly in the Sheet, share it with them as **Viewer** (or **Commenter** if
-   they should add notes). Reviewers on your website never touch the Sheet
-   directly — only the Apps Script does.
+   you and writes to it directly.
 
 2. **Extensions → Apps Script**, paste the contents of
    [`google-sheet.gs`](./google-sheet.gs), and save.
@@ -33,17 +41,10 @@ anything.
 3. **Deploy → New deployment → Web app**:
    - Execute as: **Me**
    - Who has access: **Anyone**
-   - Copy the web app URL. **The production URL always ends with `/exec`** — do not use a `/dev` URL (those are dev deployments only accessible to the script owner).
+   - Copy the web app URL (must end with `/exec`).
 
 4. **Set the URL** with `data-google-sheet="<URL>"` on the script tag — reviewers
-   never see a setup prompt. Comments push/pull automatically.
-
-Once connected, comments are pushed to the sheet automatically — create, edit,
-reply, and delete all sync within a few seconds. Comments from other reviewers
-on the same sheet appear when you load the page.
-
-A **Sync now** button in the comments panel footer lets you force a pull at any
-time.
+   never see a setup prompt.
 
 > **No Google account required for reviewers.** The Apps Script runs as the
 > sheet owner. Reviewers only need the web app URL.
@@ -60,31 +61,14 @@ cd hono-server && npm install && npm start    # runs on :3099
 
 Add `data-hono-url="http://localhost:3099/api/sync"` to the script tag.
 
-### Plugin-based sync architecture
-
-Sync backends are loaded as separate script files, so you only ship what you
-need:
-
-```html
-<script src="./annotate-sync.js" defer></script>
-<script src="./sync-engine.js" defer></script>         <!-- required for any sync -->
-<script src="./sync-google-sheet.js" defer></script>    <!-- Google Sheets plugin -->
-<script src="./sync-hono.js" defer></script>             <!-- Hono sync plugin -->
-```
-
-Each plugin registers via `Annotate.sync.register({...})`. The engine fans out
-create/update/delete/pull across all enabled plugins. Plugins communicate
-through `Annotate._internals` — no build step, no bundler.
-
 ### Other enhancements
 
-- **Plugin-based sync engine** — pluggable remote backends, add your own by implementing `{push, delete, pull, renderStatus}` and calling `Annotate.sync.register()`.
-- **Hono sync server** — `hono-server/` with `POST/GET /api/sync`, stores data as `data/<domain>/<page>.json`. 9 test cases included.
-- **CORS fix** — `gsPull` GET requests no longer send an unnecessary `Content-Type` header that triggered OPTIONS preflight (405 from Google Apps Script). POST requests use `text/plain` instead of `application/json` to avoid preflight entirely.
-- **Stale `GS_URL` fix** — sheet URL changes made via the dialog now actually take effect. Previously the module-level variable was set once at init and never updated.
-- **Cancel / close on sheet modal** — clicking outside, pressing Escape, or clicking "Cancel" dismisses the Google Sheets configuration dialog without changing existing settings.
-- **Customizable launcher text** — the floating Review pill can be customized (currently reads "Review & Add Feedback to website").
-
+- **Auto-pull on load** — `sync-engine.js` waits for `DOMContentLoaded` (after all defer scripts) then pulls comments automatically. No manual "Sync now" needed.
+- **URL locked via data attributes** — the sync URL is set once on the `<script>` tag. No runtime "Change" prompts.
+- **Plugin-based engine** — add your own backend by implementing `{push, delete, pull, renderStatus}` and calling `Annotate.sync.register()`.
+- **CORS fix** — POST requests use `text/plain` to avoid preflight.
+- **Stale URL fix** — sheet URL changes take effect immediately.
+- **Hono sync server** — `hono-server/` with `POST/GET /api/sync`, 9 test cases included.
 ---
 
 # reviewjs
