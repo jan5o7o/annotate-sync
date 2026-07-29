@@ -19,6 +19,8 @@ build step, no bundler.
 To use Hono instead, swap the last line for `sync-hono.js`. You only ship what
 you need.
 
+**[Live demo →](https://jan5o7o.github.io/annotate-sync)** — see both backends in action.
+
 ## Backends
 
 ### Google Sheets sync
@@ -36,6 +38,8 @@ live review dashboard — every annotation appears as a row.
 #### Setup
 
 1. **Create a Google Sheet** with this header row:
+   > **Quick start:** [Clone this sample sheet](https://docs.google.com/spreadsheets/d/1TTTENGvuoM0zX_8rl5rHuL4D6rh4oKCabFR1nwGf0mI/edit?usp=sharing) (File → Make a copy) — it already has the header row and Apps Script configured. Just re-deploy the script and copy your new URL.
+
 
    `annotateId | page | url | type | author | text | color | anchor | geom | resolved | parentId | createdAt | updatedAt`
 
