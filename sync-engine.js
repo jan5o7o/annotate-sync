@@ -1,6 +1,6 @@
 /* =============================================================================
- * sync-engine.js — pluggable remote-sync engine for annotate.js.
- * Load AFTER annotate.js. Replaces window.Annotate.sync with the real engine.
+ * sync-engine.js — pluggable remote-sync engine for annotate-sync.
+ * Load AFTER annotate-sync.js. Replaces window.Annotate.sync with the real engine.
  * Plugins register via Annotate.sync.register({…}).
  * ========================================================================== */
 (function () {

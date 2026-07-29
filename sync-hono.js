@@ -1,9 +1,9 @@
 /* =============================================================================
- * sync-hono.js — Hono sync plugin for annotate.js.
+ * sync-hono.js — Hono sync plugin for annotate-sync.
  * Load AFTER sync-engine.js. Registers via Annotate.sync.register({…}).
  *
  * Configure with data-hono-url="http://localhost:3099/api/sync" on the
- * annotate.js script tag, or paste the URL when prompted.
+ * annotate-sync.js script tag.
  * ========================================================================== */
 (function () {
   if (!window.Annotate || !window.Annotate.sync || !window.Annotate._internals) return;

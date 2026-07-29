@@ -1,9 +1,9 @@
 /* =============================================================================
- * sync-google-sheet.js — Google Sheets sync plugin for annotate.js.
+ * sync-google-sheet.js — Google Sheets sync plugin for annotate-sync.
  * Load AFTER sync-engine.js. Registers via Annotate.sync.register({…}).
  *
- * Configure with data-google-sheet="<Apps Script URL>" on the annotate.js
- * script tag, or paste the URL when prompted.
+ * Configure with data-google-sheet="<Apps Script URL>" on the annotate-sync.js
+ * script tag.
  * ========================================================================== */
 (function () {
   if (!window.Annotate || !window.Annotate.sync || !window.Annotate._internals) return;
