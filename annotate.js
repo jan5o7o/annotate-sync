@@ -35,7 +35,7 @@
   if (window.__ANNOTATE_LOADED__) return;
   window.__ANNOTATE_LOADED__ = true;
 
-  var VERSION = "1.0.1";
+  var VERSION = "1.2.0";
 
   // --------------------------------------------------------------------------
   // CONFIG — resolved from (in priority order) the script tag's data-* attrs,
@@ -55,8 +55,6 @@
     startOpen: truthy(scriptData.startOpen || globalConfig.startOpen),
     note: scriptData.note || globalConfig.note || "",
     share: String(scriptData.shareEmail || globalConfig.shareEmail || "").trim(),
-    googleSheet: String(scriptData.googleSheet || globalConfig.googleSheet || "").trim(),
-    honoUrl: String(scriptData.honoUrl || globalConfig.honoUrl || "").trim(),
   };
   var PAGE = (CFG.project ? CFG.project + ":" : "") + CFG.page;
 
@@ -86,8 +84,6 @@
     // the embed script — they are static and never edited by the reviewer.
     note: CFG.note || "",
     share: CFG.share || "",
-    sheetUrl: CFG.googleSheet || store.get("an-sheet") || "",
-    honoUrl: CFG.honoUrl || store.get("an-hono") || "",
     comments: [],
     panelOpen: false,
     activeId: null,
@@ -194,7 +190,6 @@
       updatedAt: now,
     };
     d.comments.push(c); dbWrite(d);
-    Annotate.sync.markDirty(c);
     return c;
   }
   function patchComment(id, changes) {
@@ -214,19 +209,13 @@
     }
     c.updatedAt = new Date().toISOString();
     dbWrite(d);
-    Annotate.sync.markDirty(c);
     return c;
   }
   function removeComment(id) {
     var d = dbRead();
-    var c = d.comments.filter(function (x) { return x.id === id; })[0];
-    var replyIds = c && c.replies ? c.replies.map(function (r) { return r.id; }) : [];
     d.comments = d.comments.filter(function (c) { return c.id !== id; });
     dbWrite(d);
-    Annotate.sync.delete([id].concat(replyIds));
   }
-
-
 
   // unique-ish css selector for an element (for re-anchoring overlays)
   function cssPath(node) {
@@ -284,7 +273,6 @@
   var CSS_TEXT = `
   :root {
     --an-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    --an-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
     --an-surface: #ffffff;
     --an-surface-2: #f6f6f8;
     --an-glass: rgba(255,255,255,.85);
@@ -318,8 +306,8 @@
 
   #__an_root, #__an_root *, #__an_compose, #__an_compose *,
   #__an_toasts, #__an_toasts *, #__an_namewrap, #__an_namewrap *,
-  #__an_sheetwrap, #__an_sheetwrap *, #__an_honowrap, #__an_honowrap *,
-  #__an_sharewrap, #__an_sharewrap * { box-sizing: border-box; }
+  #__an_sharewrap, #__an_sharewrap *, #__an_launch, #__an_launch *,
+  #__an_plus, #__an_plus * { box-sizing: border-box; }
 
   .an-mark { border-radius: 2px; padding: .04em 0; cursor: pointer;
     transition: background .15s, box-shadow .15s; }
@@ -516,10 +504,12 @@
     font-size:11.5px; color: var(--an-muted); }
   #__an_foot .an-localnote svg { width:14px; height:14px; flex:none; }
   #__an_foot .an-footrow { display:flex; gap:8px; }
+  #__an_foot .an-footrow.an-four { flex-wrap:wrap; }
   #__an_foot .an-fbtn { flex:1; border:1px solid var(--an-border-strong);
     background: var(--an-surface); color: var(--an-fg); border-radius:10px; padding:9px;
     font:600 12.5px var(--an-font); cursor:pointer; display:flex; align-items:center;
     justify-content:center; gap:7px; transition: background .15s, border-color .15s; }
+  #__an_foot .an-footrow.an-four .an-fbtn { flex-basis:calc(50% - 4px); }
   #__an_foot .an-fbtn:hover { background: var(--an-surface-2); border-color: var(--an-btn-bg); }
   #__an_foot .an-fbtn svg { width:15px; height:15px; }
 
@@ -578,66 +568,6 @@
     font-size:11px; letter-spacing:.04em; text-transform:uppercase;
     color: var(--an-muted); margin-bottom:3px; }
 
-
-  /* ---- sheet dialog ------------------------------------------------------ */
-  #__an_sheetwrap { position:fixed; inset:0; z-index:2147483400;
-    background:rgba(14,14,22,.45); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center;
-    font-family: var(--an-font); }
-  #__an_sheetbox { background: var(--an-surface); color: var(--an-fg);
-    width:420px; max-width:92vw; border-radius:18px;
-    padding:26px 26px 22px; box-shadow: var(--an-shadow-lg);
-    animation: an-pop .22s cubic-bezier(.34,1.56,.64,1);
-    max-height:calc(100vh - 32px); overflow-y:auto; }
-  #__an_sheetbox .an-nt { font:700 19px/1.2 var(--an-font); letter-spacing:-.01em; margin:0 0 6px; }
-  #__an_sheetbox .an-nd { font-size:13.5px; color: var(--an-muted); line-height:1.5; margin:0 0 18px; }
-  #__an_sheetbox input { width:100%; border:1.5px solid var(--an-border-strong);
-    background: var(--an-surface); color: var(--an-fg); border-radius:11px;
-    padding:12px 14px; font:15px var(--an-font); outline:none; margin-bottom:14px; }
-  #__an_sheetbox input:focus { border-color: var(--an-btn-bg); }
-  #__an_sheetbox .an-srow { display:flex; gap:8px; margin-bottom:14px; }
-  #__an_sheetbox .an-srow button { flex:1; background: var(--an-btn-bg); color: var(--an-btn-fg);
-    border:none; border-radius:11px; padding:12px; font:600 14px var(--an-font);
-    cursor:pointer; transition: filter .15s; }
-  #__an_sheetbox .an-srow button:hover { filter: brightness(1.15); }
-  #__an_sheetbox .an-srow button.an-ghost2 { background: var(--an-surface-2);
-    color: var(--an-fg); border:1px solid var(--an-border-strong); }
-  #__an_sheetbox .an-guide { background: var(--an-surface-2);
-    border:1px solid var(--an-border); border-radius:11px;
-    padding:12px 14px; margin-top:8px; font:13px/1.6 var(--an-font);
-    color: var(--an-muted); }
-  #__an_sheetbox .an-guide p { margin:0 0 6px; }
-  #__an_sheetbox .an-guide p:last-child { margin-bottom:0; }
-  #__an_sheetbox .an-guide b { color: var(--an-fg); }
-  #__an_sheetbox .an-guide code { font:12px var(--an-mono); background:var(--an-surface);
-    padding:1px 5px; border-radius:4px; }
-  #__an_sheetbox .an-mini { font:500 12px var(--an-font); color: var(--an-muted);
-    background:none; border:none; cursor:pointer; padding:4px 0; }
-  #__an_sheetbox .an-mini:hover { color: var(--an-fg); }
-
-  /* ---- hono dialog ------------------------------------------------------- */
-  #__an_honowrap { position:fixed; inset:0; z-index:2147483400;
-    background:rgba(14,14,22,.45); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center;
-    font-family: var(--an-font); }
-  #__an_honobox { background: var(--an-surface); color: var(--an-fg);
-    width:420px; max-width:92vw; border-radius:18px;
-    padding:26px 26px 22px; box-shadow: var(--an-shadow-lg);
-    animation: an-pop .22s cubic-bezier(.34,1.56,.64,1);
-    max-height:calc(100vh - 32px); overflow-y:auto; }
-  #__an_honobox .an-nt { font:700 19px/1.2 var(--an-font); letter-spacing:-.01em; margin:0 0 6px; }
-  #__an_honobox .an-nd { font-size:13.5px; color: var(--an-muted); line-height:1.5; margin:0 0 18px; }
-  #__an_honobox input { width:100%; border:1.5px solid var(--an-border-strong);
-    background: var(--an-surface); color: var(--an-fg); border-radius:11px;
-    padding:12px 14px; font:15px var(--an-font); outline:none; margin-bottom:14px; }
-  #__an_honobox input:focus { border-color: var(--an-btn-bg); }
-  #__an_honobox .an-srow { display:flex; gap:8px; }
-  #__an_honobox .an-srow button { flex:1; background: var(--an-btn-bg); color: var(--an-btn-fg);
-    border:none; border-radius:11px; padding:12px; font:600 14px var(--an-font);
-    cursor:pointer; transition: filter .15s; }
-  #__an_honobox .an-srow button:hover { filter: brightness(1.15); }
-  #__an_honobox .an-srow button.an-ghost2 { background: var(--an-surface-2);
-    color: var(--an-fg); border:1px solid var(--an-border-strong); }
   /* ---- share dialog ------------------------------------------------------ */
   #__an_sharewrap { position:fixed; inset:0; z-index:2147483400;
     background:rgba(14,14,22,.45); backdrop-filter:blur(4px);
@@ -790,6 +720,8 @@
     #__an_colorbtn { width:36px; height:36px; }
     #__an_panel .an-list { -webkit-overflow-scrolling: touch; }
     .an-ph { padding:14px 14px 10px; }
+    #__an_foot .an-footrow { flex-wrap:wrap; }
+    #__an_foot .an-fbtn { flex-basis:calc(50% - 4px); }
   }
 
   @media (hover: none) and (pointer: coarse) {
@@ -829,7 +761,6 @@
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3 6l9 6 9-6"/></svg>',
-    sheets: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
   };
 
   // ==========================================================================
@@ -1250,128 +1181,6 @@
     setTimeout(function () { input.focus(); }, 40);
   }
 
-  function askSheet(onDone) {
-    if (document.getElementById("__an_sheetwrap")) return;
-    var wrap = el("div", { id: "__an_sheetwrap" });
-    var input = el("input", { placeholder: "https://script.google.com/macros/s/...", value: state.sheetUrl || "" });
-    var hasExisting = !!state.sheetUrl;
-    var connectBtn = el("button", { text: "Connect" });
-    var skipBtn = el("button", { class: "an-ghost2", text: hasExisting ? "Cancel" : "Skip \u2014 work locally" });
-    var kids = [
-      el("h3", { class: "an-nt", text: "Sync to Google Sheets" }),
-      el("p", { class: "an-nd", text: "Paste your sheet\u2019s web app URL to save comments there automatically. Comments from other reviewers on the same sheet will appear here too." }),
-    ];
-    kids.push(input);
-    kids.push(el("div", { class: "an-srow" }, [connectBtn, skipBtn]));
-    // Collapsible setup guide
-    var guideToggle = el("button", { class: "an-mini an-ghost2", text: "How to set this up \u25BE" });
-    var guideBody = el("div", { class: "an-guide" }, [
-      el("p", {}, [el("b", { text: "1." }), document.createTextNode(" Open your Google Sheet, go to Extensions \u2192 Apps Script.")]),
-      el("p", {}, [el("b", { text: "2." }), document.createTextNode(" Paste the script from "), el("code", { text: "google-sheet.gs" }), document.createTextNode(", then click Deploy \u2192 New deployment \u2192 Web app.")]),
-      el("p", {}, [el("b", { text: "3." }), document.createTextNode(" Set \u201CExecute as\u201D to \u201CMe\u201D and \u201CWho has access\u201D to \u201CAnyone\u201D, then deploy.")]),
-      el("p", {}, [el("b", { text: "4." }), document.createTextNode(" Copy the web app URL and paste it above.")]),
-    ]);
-    guideBody.style.display = "none";
-    guideToggle.addEventListener("click", function () {
-      var open = guideBody.style.display !== "none";
-      guideBody.style.display = open ? "none" : "";
-      guideToggle.textContent = open ? "How to set this up \u25BE" : "How to set this up \u25B4";
-    });
-    kids.push(guideToggle, guideBody);
-    var box = el("div", { id: "__an_sheetbox" }, kids);
-    wrap.appendChild(box);
-    wrap.addEventListener("click", function (e) { if (e.target === wrap) skip(); });
-    document.addEventListener("keydown", function escSheet(e) { if (e.key === "Escape") { skip(); document.removeEventListener("keydown", escSheet); } });
-    document.body.appendChild(wrap);
-    var releaseTrap = trapFocus(wrap);
-    function connect() {
-      var url = input.value.trim();
-      if (url && !/^https:\/\/script\.google(?:apis)?\.com\//.test(url)) {
-        toast("That doesn\u2019t look like a Google Apps Script URL. It should start with https://script.google.com/", { kind: "error" });
-        return;
-      }
-      state.sheetUrl = url;
-      store.set("an-sheet", url);
-      store.set("an-sheet-skipped", "");
-      releaseTrap();
-      wrap.remove();
-      renderFooter();
-      // Pull from the newly configured sheet.
-      if (url) {
-        Annotate.sync.pull(function (incoming, err) {
-          if (incoming && incoming.length) {
-            var added = Annotate.sync.mergeAll(incoming);
-            if (added > 0) {
-              state.comments = pageComments().filter(function (c) { return !pendingDeletes[c.id]; });
-              renderAll(); renderPanel();
-            }
-          } else if (err) {
-            toast("Couldn\u2019t reach the sheet. Check the URL and try again.", { kind: "error" });
-          }
-        });
-      }
-      if (onDone) onDone();
-    }
-    function skip() {
-      if (!hasExisting) store.set("an-sheet-skipped", "1");
-      releaseTrap();
-      wrap.remove();
-      renderFooter();
-      if (onDone) onDone();
-    }
-    connectBtn.addEventListener("click", connect);
-    skipBtn.addEventListener("click", skip);
-    input.addEventListener("keydown", function (e) { if (e.key === "Enter") connect(); });
-    setTimeout(function () { input.focus(); }, 40);
-  }
-
-  function askHono(onDone) {
-    if (document.getElementById("__an_honowrap")) return;
-    var wrap = el("div", { id: "__an_honowrap" });
-    var input = el("input", { placeholder: "http://localhost:3099/api/sync", value: state.honoUrl || "" });
-    var connectBtn = el("button", { text: "Connect" });
-    var skipBtn = el("button", { class: "an-ghost2", text: "Skip \u2014 work locally" });
-    var box = el("div", { id: "__an_honobox" }, [
-      el("h3", { class: "an-nt", text: "Sync to Hono" }),
-      el("p", { class: "an-nd", text: "Paste your Hono sync server URL. Comments will be saved to JSON files automatically." }),
-      input,
-      el("div", { class: "an-srow" }, [connectBtn, skipBtn]),
-    ]);
-    wrap.appendChild(box);
-    document.body.appendChild(wrap);
-    var releaseTrap = trapFocus(wrap);
-    function connect() {
-      var url = input.value.trim().replace(/\/+$/, "");
-      state.honoUrl = url;
-      store.set("an-hono", url);
-      releaseTrap();
-      wrap.remove();
-      renderFooter();
-      if (url) {
-        Annotate.sync.pull(function (incoming, err) {
-          if (incoming && incoming.length) {
-            var added = Annotate.sync.mergeAll(incoming);
-            if (added > 0) {
-              state.comments = pageComments().filter(function (c) { return !pendingDeletes[c.id]; });
-              renderAll(); renderPanel();
-            }
-          }
-        });
-      }
-      if (onDone) onDone();
-    }
-    function skip() {
-      releaseTrap();
-      wrap.remove();
-      renderFooter();
-      if (onDone) onDone();
-    }
-    connectBtn.addEventListener("click", connect);
-    skipBtn.addEventListener("click", skip);
-    input.addEventListener("keydown", function (e) { if (e.key === "Enter") connect(); });
-    setTimeout(function () { input.focus(); }, 40);
-  }
-
   function swatchDot(color) {
     var d = el("span");
     d.style.cssText = "width:11px;height:11px;border-radius:50%;display:inline-block;background:" + color;
@@ -1614,7 +1423,7 @@
     bar.appendChild(offBtn);
     root.appendChild(bar);
 
-    launchEl = el("button", { id: "__an_launch", class: SIDE, html: ICONS.bubble + "<span>Review &amp; Add Feedback to website</span>" });
+    launchEl = el("button", { id: "__an_launch", class: SIDE, html: ICONS.bubble + "<span>Review</span>" });
     launchEl.addEventListener("click", function () {
       if (!state.author) askName(function () { setEnabled(true); });
       else setEnabled(true);
@@ -1855,7 +1664,7 @@
       if (root) root.style.display = "none";
       if (launchEl) {
         var n = state.comments.filter(function (c) { return !c.resolved; }).length;
-        launchEl.querySelector("span").textContent = n ? "Review & Add Feedback to website (" + n + ")" : "Review &amp; Add Feedback to website";
+        launchEl.querySelector("span").textContent = n ? "Review (" + n + ")" : "Review";
         launchEl.classList.add("an-show");
       }
     }
@@ -2087,13 +1896,10 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  function exportComments() {
+  function buildExportPayload() {
     var comments = state.comments.slice();
-    if (!comments.length) {
-      toast("No comments on this page to export", { kind: "info" });
-      return;
-    }
-    var payload = {
+    if (!comments.length) return null;
+    return {
       annotate: VERSION,
       kind: "annotate-export",
       exportedAt: new Date().toISOString(),
@@ -2103,10 +1909,28 @@
       exportedViewport: { vw: window.innerWidth, vh: window.innerHeight, dpr: window.devicePixelRatio || 1 },
       comments: comments,
     };
+  }
+
+  function exportComments() {
+    var payload = buildExportPayload();
+    if (!payload) {
+      toast("No comments on this page to export", { kind: "info" });
+      return;
+    }
+    var comments = payload.comments;
     var slug = (PAGE || "page").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "page";
     var stamp = new Date().toISOString().slice(0, 10);
     downloadJSON(payload, "annotate-" + slug + "-" + stamp + ".json");
     toast("Exported " + comments.length + " comment" + (comments.length === 1 ? "" : "s"), { kind: "success" });
+  }
+
+  function copyComments() {
+    var payload = buildExportPayload();
+    if (!payload) {
+      toast("No comments on this page to copy", { kind: "info" });
+      return;
+    }
+    copyText(JSON.stringify(payload, null, 2), "Comments copied as JSON");
   }
 
   function pickImportFile() {
@@ -2222,57 +2046,19 @@
     if (!footEl) return;
     var n = state.comments.length;
     var canShare = !!(state.share && state.share.trim());
-    var hasSheet = !!state.sheetUrl;
-    var anySync = Annotate.sync.anyEnabled();
     footEl.innerHTML = "";
-
-    // Base status line
-    var statusKids = [el("span", { html: anySync ? ICONS.sheets : ICONS.info })];
-    if (!anySync) {
-      statusKids.push(el("span", { text: canShare
+    footEl.appendChild(el("div", { class: "an-localnote" }, [
+      el("span", { html: ICONS.info }),
+      el("span", { text: canShare
         ? "Saved in this browser. Download or share to send your comments."
-        : "Saved in this browser. Download to send your comments." }));
-      if (!CFG.googleSheet) {
-        statusKids.push(el("button", { class: "an-mini an-ghost2", text: "Connect sheet", title: "Sync to Google Sheets", onclick: function () {
-          askSheet(function () { renderFooter(); });
-        } }));
-      }
-      if (!CFG.honoUrl) {
-        statusKids.push(el("button", { class: "an-mini an-ghost2", text: "Connect hono", title: "Sync to Hono", onclick: function () {
-          askHono(function () { renderFooter(); });
-        } }));
-      }
-    }
-    footEl.appendChild(el("div", { class: "an-localnote" }, statusKids));
-
-    // Let each plugin render its status line
-    Annotate.sync.renderFooter(footEl, n, canShare);
-
-    // Button row
-    var btnRow = [];
-    btnRow.push(el("button", { class: "an-fbtn" + (n ? " an-pulse" : ""), title: "Download comments as JSON", html: ICONS.download + "<span>Download</span>", onclick: exportComments }));
-    if (anySync) {
-      btnRow.push(el("button", { class: "an-fbtn", title: "Pull latest from all sync targets", html: ICONS.sheets + "<span>Sync now</span>", onclick: function () {
-        Annotate.sync.flush();
-        renderFooter();
-        Annotate.sync.pull(function (incoming, err) {
-          if (incoming && incoming.length) {
-            var added = Annotate.sync.mergeAll(incoming);
-            if (added > 0) {
-              state.comments = pageComments().filter(function (c) { return !pendingDeletes[c.id]; });
-              renderAll(); renderPanel();
-            }
-            toast("Synced" + (added > 0 ? " \u2014 " + added + " new comment" + (added === 1 ? "" : "s") : ""), { kind: "success" });
-          } else {
-            toast("Sync failed \u2014 check your configuration", { kind: "error" });
-          }
-          renderFooter();
-        });
-      } }));
-    }
-    if (canShare) btnRow.push(el("button", { class: "an-fbtn", title: "Send comments to " + state.share, html: ICONS.share + "<span>Share</span>", onclick: shareComments }));
-    btnRow.push(el("button", { class: "an-fbtn", html: ICONS.upload + "<span>Import</span>", onclick: pickImportFile }));
-    footEl.appendChild(el("div", { class: "an-footrow" }, btnRow));
+        : "Saved in this browser. Download to send your comments." }),
+    ]));
+    footEl.appendChild(el("div", { class: "an-footrow" + (canShare ? " an-four" : "") }, [
+      el("button", { class: "an-fbtn" + (n ? " an-pulse" : ""), title: "Download comments as JSON", html: ICONS.download + "<span>Download</span>", onclick: exportComments }),
+      el("button", { class: "an-fbtn", title: "Copy comments as JSON", "aria-label": "Copy comments as JSON", html: ICONS.copy + "<span>Copy</span>", onclick: copyComments }),
+      canShare ? el("button", { class: "an-fbtn", title: "Send comments to " + state.share, html: ICONS.share + "<span>Share</span>", onclick: shareComments }) : null,
+      el("button", { class: "an-fbtn", html: ICONS.upload + "<span>Import</span>", onclick: pickImportFile }),
+    ]));
   }
 
   // Copy text to the clipboard with graceful fallback + toast feedback.
@@ -2451,17 +2237,6 @@
         if (state.comments.some(function (c) { return c.id === target; }))
           setTimeout(function () { focusComment(target, false); }, 150);
       }
-      if (Annotate.sync.anyEnabled()) {
-        Annotate.sync.pull(function (incoming, err) {
-          if (incoming && incoming.length) {
-            var added = Annotate.sync.mergeAll(incoming);
-            if (added > 0) {
-              state.comments = pageComments().filter(function (c) { return !pendingDeletes[c.id]; });
-              renderAll(); renderPanel();
-            }
-          }
-        });
-      }
     }
   }
 
@@ -2509,38 +2284,6 @@
       d.comments = d.comments.filter(function (c) { return c.page !== PAGE; });
       dbWrite(d);
       load();
-    },
-
-    // Sync plugin bus — no-ops until sync-engine.js replaces them.
-    sync: {
-      register:   function (){},
-      markDirty:  function (){},
-      delete:     function (){},
-      flush:      function (){},
-      anyEnabled: function (){ return false; },
-      pull:       function (cb){ if(cb) cb([],null); },
-      mergeAll:   function (incoming){ return 0; },
-      renderFooter:function (){},
-    },
-
-    // Semi-private internals for sync plugins.
-    _internals: {
-      dbRead: dbRead,
-      dbWrite: dbWrite,
-      pageComments: pageComments,
-      pendingDeletes: pendingDeletes,
-      renderAll: renderAll,
-      renderPanel: renderPanel,
-      renderFooter: renderFooter,
-      PAGE: PAGE,
-      state: state,
-      ICONS: ICONS,
-      el: el,
-      toast: toast,
-      trapFocus: trapFocus,
-      store: store,
-      askSheet: askSheet,
-      askHono: askHono,
     },
   };
 
